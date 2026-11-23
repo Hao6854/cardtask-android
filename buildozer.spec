@@ -26,8 +26,10 @@ android.permissions =
 
 # 兼容 Android 10 (API 29) 及以上
 android.minapi = 29
-android.api = 34
-android.sdk = 34
+android.api = 36
+android.sdk = 36
+android.ndk = 29
+p4a.branch = develop
 
 # 支持主流架构：64 位 + 32 位
 android.arch = arm64-v8a
