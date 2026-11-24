@@ -33,6 +33,8 @@ jobs:
 
       - name: Install Buildozer
         run: |
+          # pip 26.3+ 移除了 pip._internal.utils.logging.capture_logging，
+          # 会破坏 python-for-android 的构建脚本；锁定到 26.3 之前作双保险。
           python -m pip install --upgrade "pip<26.3" setuptools wheel
           python -m pip install buildozer
 
