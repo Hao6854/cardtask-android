@@ -12,6 +12,56 @@
 数据本地持久化（JSON，保存在应用私有目录，无需存储权限）。
 """
 
+# --- 崩溃自报：在任何第三方库导入之前安装全局异常钩子 ---
+# 作用：启动期一旦发生未捕获异常，把堆栈写到文件并用 Toast 显示，
+#       避免"直接闪退"看不到任何原因。
+def _install_crash_handler():
+    import sys
+    import traceback
+
+    def _hook(exc_type, exc, tb):
+        try:
+            text = "".join(traceback.format_exception(exc_type, exc, tb))
+        except Exception:
+            text = repr(exc)
+        try:
+            from jnius import autoclass
+
+            activity = autoclass("org.kivy.android.PythonActivity").mActivity
+            # 1) 屏幕上用 Toast 显示，便于直接截图反馈
+            try:
+                Toast = autoclass("android.widget.Toast")
+                Toast.makeText(activity, "启动错误：" + text[-700:], Toast.LENGTH_LONG).show()
+            except Exception:
+                pass
+            # 2) 写到手机"下载"目录，便于把日志发给开发者
+            try:
+                resolver = activity.getContentResolver()
+                MediaStore = autoclass("android.provider.MediaStore")
+                Downloads = autoclass("android.provider.MediaStore$Downloads")
+                ContentValues = autoclass("android.content.ContentValues")
+                Environment = autoclass("android.os.Environment")
+                values = ContentValues()
+                values.put("_display_name", "cardtask_crash.txt")
+                values.put("_mime_type", "text/plain")
+                values.put("relative_path", Environment.DIRECTORY_DOWNLOADS)
+                values.put("is_pending", 0)
+                uri = resolver.insert(Downloads.EXTERNAL_CONTENT_URI, values)
+                out = resolver.openOutputStream(uri)
+                out.write(text.encode("utf-8"))
+                out.flush()
+                out.close()
+            except Exception:
+                pass
+        except Exception:
+            pass
+        traceback.print_exception(exc_type, exc, tb)
+
+    sys.excepthook = _hook
+
+
+_install_crash_handler()
+
 import io
 import os
 import json

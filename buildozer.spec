@@ -14,8 +14,11 @@ source.exclude_dirs = bin,build,.github
 # 版本号（对应需求中的 1.0）
 version = 1.0
 
-# 依赖：python3 + Kivy + 安卓 Java 调用（用于导出文件到下载目录）
-requirements = python3,kivy,pyjnius
+# 依赖：固定 Python 3.12（稳定版）+ Kivy + 安卓 Java 调用（用于导出文件到下载目录）
+# 注意：p4a develop 默认 python3=3.14.2，Kivy 移动端对其支持不成熟易闪退；
+#       python3 与 hostpython3 必须同时指定相同版本，否则 buildozer 会报错。
+#       3.12 是 Kivy 2.3.1 长期验证的稳定组合，同时兼容较新的 NDK 29。
+requirements = python3==3.12.10,hostpython3==3.12.10,kivy,pyjnius
 
 # 竖屏
 orientation = portrait
@@ -29,7 +32,6 @@ android.minapi = 29
 android.api = 36
 android.sdk = 36
 android.ndk = 29
-p4a.branch = develop
 
 # 支持主流架构：64 位 + 32 位
 android.arch = arm64-v8a
@@ -39,7 +41,9 @@ android.accept_sdk_license = True
 android.allow_backup = True
 android.entrypoint = org.kivy.android.PythonActivity
 
-# 使用 Buildozer 自带的 python-for-android 默认版本，稳定性更好
+# 关键修复：p4a 官方 master 分支自 2026-08 起损坏（capture_logging / charset_normalizer 构建错误），
+# 修复已合入 develop 分支但尚未发版。显式指定 develop 才能正常构建。
+p4a.branch = develop
 
 [buildozer]
 log_level = 2
